@@ -12,6 +12,22 @@ const nextConfig: NextConfig = {
   ...(allowedDevOrigins?.length ? { allowedDevOrigins } : {}),
   transpilePackages: ['@t3-oss/env-core', '@t3-oss/env-nextjs', 'echarts', 'zrender'],
   serverExternalPackages: ['loro-crdt'],
+  experimental: {
+    // Reduce worker concurrency in memory-limited build environments.
+    cpus: 1,
+    webpackMemoryOptimizations: true,
+
+    // Keep the build worker enabled when using custom webpack configuration.
+    webpackBuildWorker: true,
+  },
+  webpack(config, { dev }) {
+    if (!dev) {
+      // Avoid retaining build cache and compiling many modules concurrently.
+      config.cache = false
+      config.parallelism = 1
+    }
+    return config
+  },
   turbopack: {
     rules: codeInspectorPlugin({
       bundler: 'turbopack',
